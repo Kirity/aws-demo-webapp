@@ -1,6 +1,6 @@
 # POC of a web app with full CI/CD implemented with ECS FARGATE
 
-| S.No | Stack Source | Description|
+| S.No | CloudFormation stack | Description|
 | --- | --- |--- |
 | 1 | [Network infrastructure stack](https://github.com/Kirity/aws-demo-webapp/blob/feature_branch/infrastructure/aws-webapp-network-infrastructure.yaml) |VPC,|
 | 2 | [ECS cluster stack]() |ECS Cluster with FARGATE|
