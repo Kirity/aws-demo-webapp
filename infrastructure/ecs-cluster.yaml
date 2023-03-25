@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ECS cluster template
+
+Parameters:
+  Stage:
+    Description: An environment name that will be prefixed to resource names(dev or qa or prod)
+    Type: String
+    Default: dev
+  VpcStack:
+    Type: String
+    Description: Name of VPC stack
+    Default: aws-webapp-network-infrastructure
+  ProjectName:
+    Type: String
+    Default: "aws-demo-webapp"
+
+Resources:
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join ['-', [!Ref Stage, !Ref ProjectName, 'ecs-fargate-cluster']]
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId:
+        Fn::ImportValue: !Sub ${VpcStack}-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+
+  ECSOperationsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['_', [ 'ECS_OPERATIONS', !Ref Stage]]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - ecs.amazonaws.com
+                - ecs-tasks.amazonaws.com
+                - codepipeline.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+        - arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Tags:
+        - Key: Name
+          Value: !Ref Stage
+  CodePipelineOperationsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['_', [ 'CP_OPERATIONS', !Ref Stage]]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+                - codepipeline.amazonaws.com
+                - cloudformation.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess
+        - arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess
+        - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Tags:
+        - Key: Name
+          Value: !Ref Stage
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Join ['-', [!Ref Stage, !Ref ProjectName, 'alb']]
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets:
+        - Fn::ImportValue: !Sub ${VpcStack}-public-subnet-1-id
+        - Fn::ImportValue: !Sub ${VpcStack}-public-subnet-2-id
+      Type: application
+      Tags:
+        - Key: Name
+          Value: !Ref Stage
+
+Outputs:
+  EcsClusterExport:
+    Description: ECS Cluster
+    Value: !Ref EcsCluster
+    Export:
+      Name: !Sub ${AWS::StackName}-ecs-cluster
+
+  ALBSecurityGroupExport:
+    Description: ALBSecurityGroup
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-alb-security-group
+
+  ECSOperationsRoleExport:
+    Description: ECSOperationsRole
+    Value: !Ref ECSOperationsRole
+    Export:
+      Name: !Sub ${AWS::StackName}-ecs-operations-role
+
+  CodePipelineOperationsRoleExport:
+    Description: CodePipelineOperationsRole
+    Value: !GetAtt  CodePipelineOperationsRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-codepipeline-operations-role
+
+  ApplicationLoadBalancerArnExport:
+    Description: ApplicationLoadBalancer
+    Value: !Ref ApplicationLoadBalancer
+    Export:
+      Name: !Sub ${AWS::StackName}-alb-arn

@@ -1,0 +1,33 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - echo AWS_DEFAULT_REGION = $AWS_DEFAULT_REGION
+      - echo AWS_ACCOUNT_ID = $AWS_ACCOUNT_ID
+      - echo ECR_REPOSITORY_URI = $ECR_REPOSITORY_URI
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo COMMIT_HASH = $COMMIT_HASH
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - echo IMAGE_TAG = $IMAGE_TAG
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $ECR_REPOSITORY_URI:latest .
+      - docker tag $ECR_REPOSITORY_URI:latest $ECR_REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $ECR_REPOSITORY_URI:latest
+      - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
+      - printf '{"ImageURI":"%s:%s"}' $ECR_REPOSITORY_URI $IMAGE_TAG > imageDetail.json
+artifacts:
+  files:
+    - imageDetail.json
