@@ -81,7 +81,7 @@ Resources:
                 Provider: CodeStarSourceConnection
                 Version: 1
               Configuration:
-                ConnectionArn: !Sub 'arn:aws:codestar-connections:eu-west-1:${AWS::AccountId}:connection/66168fcd-84c1-4af8-bc09-9a1aa9339ec8'
+                ConnectionArn: !Sub 'arn:aws:codestar-connections:eu-central-1:${AWS::AccountId}:connection/f4da8eb1-88e7-40ab-98f5-748f33849641'
                 FullRepositoryId: !Ref GithubFullRepo
                 BranchName: !Ref GithubBranch
               RunOrder: 1
