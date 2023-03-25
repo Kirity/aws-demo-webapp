@@ -50,6 +50,7 @@ Resources needed to provision the application
 | [VPC]() ||
 | [Subnets]() ||
 | [SecurityGroups]() ||
+| [IAM]() ||
 | [ALB]() ||
 | [ACM]() ||
 | [ASG]() ||
