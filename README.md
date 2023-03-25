@@ -1,2 +1,2 @@
-# aws-demo-webapp
-aws-demo-webapp
+# POC of a web app with full CI/CD implemented with ECS FARGATE
+

@@ -8,7 +8,7 @@ const HOST = '0.0.0.0';
 
 var os = require("os");
 var hostname = os.hostname();
-var version = 1
+var version = 2
 // App
 const app = express();
 app.get('/', (req, res) => {
