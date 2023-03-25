@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: The CloudFormation template to create the code repositroy infrastructure.
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    Description: Could be develop, qa, prod
+  ProjectName:
+    Type: String
+    Default: "aws-demo-webapp"
+Resources:
+  # Create an S3 Bucket to store build artifacts
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ['-', [!Ref Stage, !Ref ProjectName, "pipeline-artifact-store"]]
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+Outputs:
+  S3BucketExport:
+    Description: S3Bucket
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Sub ${AWS::StackName}-s3-bucket

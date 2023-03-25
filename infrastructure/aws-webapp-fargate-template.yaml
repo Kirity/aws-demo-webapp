@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: WebApp Fargate template
+Parameters:
+  ContainerPort:
+    Type: Number
+    Default: 8080
+  Stage:
+    Type: String
+    Default: dev
+  VpcStack:
+    Type: String
+    Description: Name of VPC stack to build off of
+    Default: aws-webapp-network-infrastructure
+  EcsClusterStack:
+    Type: String
+    Description: Name of ECS Cluster stack to build off of
+    Default: ecs-cluster
+  ProjectName:
+    Type: String
+    Default: "aws-demo-webapp"
+  ImageURI:
+    Type: String
+    Description: URI of image you would like to use
+
+Resources:
+  # Create a security group for Containers and open in bound Container port from Load balancer security group to the Container
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join [ '-', [ !Ref Stage, !Ref ProjectName, 'container-security-group' ] ]
+      VpcId:
+        Fn::ImportValue: !Sub ${VpcStack}-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId:
+            Fn::ImportValue: !Sub ${EcsClusterStack}-alb-security-group
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckPort: 8080
+      HealthCheckProtocol: HTTP
+      Port: 8080
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue: !Sub ${VpcStack}-vpc-id
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Order: 1
+          TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Fn::ImportValue: !Sub ${EcsClusterStack}-alb-arn
+      Port: 8080
+      Protocol: HTTP
+    DependsOn:
+      - TargetGroup
+
+  FargateServiceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+
+  FargateServiceTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - FargateServiceLogGroup
+    Properties:
+      ContainerDefinitions:
+        -
+          Name: !Join ['-', [!Ref Stage, !Ref ProjectName, 'container']]
+          Essential: true
+          Image: !Ref ImageURI
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref FargateServiceLogGroup
+              awslogs-stream-prefix: !Join ['-', [!Ref Stage, !Ref ProjectName, 'container']]
+              awslogs-region: !Ref AWS::Region
+          PortMappings:
+            -
+              ContainerPort: 8080
+              HostPort: 8080
+              Protocol: tcp
+      Cpu: '512'
+      ExecutionRoleArn:
+        Fn::ImportValue: !Sub ${EcsClusterStack}-ecs-operations-role
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        -  FARGATE
+      TaskRoleArn:
+        Fn::ImportValue: !Sub ${EcsClusterStack}-ecs-operations-role
+
+  FargateService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - FargateServiceTaskDefinition
+      - FargateServiceLogGroup
+      - ALBListener
+    Properties:
+      Cluster:
+        Fn::ImportValue: !Sub ${EcsClusterStack}-ecs-cluster
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 2
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: FARGATE
+      LoadBalancers:
+        -
+          ContainerName: !Join ['-', [!Ref Stage, !Ref ProjectName, 'container']]
+          ContainerPort: 8080
+          TargetGroupArn: !Ref TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - !Ref ContainerSecurityGroup
+          Subnets:
+            -
+              Fn::ImportValue: !Sub ${VpcStack}-public-subnet-1-id
+            -
+              Fn::ImportValue: !Sub ${VpcStack}-public-subnet-2-id
+      TaskDefinition: !Ref FargateServiceTaskDefinition
+
+Outputs:
+  FargateServiceName:
+    Description: A reference to the created Fargate Service
+    Value: !GetAtt FargateService.Name
+    Export:
+      Name: !Sub ${AWS::StackName}-fargate-service-name
