@@ -111,6 +111,22 @@ Option-2 is recommendable.
 | [SNS](https://aws.amazon.com/sns/) | Fully managed Pub/Sub service sends notifications/messages to applications or to persons. Can be configured to send SMS texts, push notifications, and emails.|
 
 ## Further discussions
+##### Handling sudden surge in load while maintaining performance and availability?
+
+##### Deployment and testing the infrastructure?
+
+##### Security best practices?
+
+- Use only HTTPS client communication.
+- Allow only requests from frontend-ALB-security-group to the frontend-ecs-service. This will reduce the attack surface. 
+- Use encryption at rest where ever possible.
+- Use IAM roles to access any resources from EC2. 
+- Do not use access-key-id and secret-access-key in EC2 instead use Secrets Manager to store and read passwords.   
+- Create the IMA roles with "least privilege principle".  
+- Add the DDOS protection.
+- To be prepared for the incident management: enable the CloudTrail and VPC flow logs.
+
+
+##### Deployment of new version of software?
 - Use CodeDeploy Blue/Green  to be more resilient and high availability
-- Add the DDOS protection
-- To increase the security enable the CloudTrail, VPC flow logs
+
