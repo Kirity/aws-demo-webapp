@@ -1,20 +1,12 @@
-| Resource name | Description|
-| --- |--- |
-| [CodeCommit](https://aws.amazon.com/codecommit/) | Serverless solution to securely host highly scalable private Git repositories and collaborate on code.|
-| [CodePipeline](https://aws.amazon.com/codepipeline/) | Serverless solution to automate continuous delivery pipelines for fast and reliable updates.|
-| [CodeBuild](https://aws.amazon.com/codebuild/) | Serverless solution to build and test the software with automatic scaling.|
-| [CodeDeploy]() | test|
-| [ECR]() | test|
-| [S3]() | test|
 
-# POC of a web app with full CI/CD implemented with ECS FARGATE
+# POC of a web app with full CI/CD implemented with ECS launch type as FARGATE
 
 | S.No | CloudFormation stack | Description|
 | --- | --- |--- |
-| 1 | [Network infrastructure stack](https://github.com/Kirity/aws-demo-webapp/blob/feature_branch/infrastructure/aws-webapp-network-infrastructure.yaml) |VPC,|
-| 2 | [ECS cluster stack]() |ECS Cluster with FARGATE|
-| 3 | [Code infrastructure stack]() |S3 bucket|
-| 4 | [Pipeline stack]() |CodePipeline with stages source, build, and deploy|
+| 1 | [Network infrastructure stack](https://github.com/Kirity/aws-demo-webapp/blob/develop/infrastructure/aws-webapp-network-infrastructure.yaml) |Provisions  VPC, InternetGateway, public-subnets, private-subnets |
+| 2 | [ECS cluster stack](https://github.com/Kirity/aws-demo-webapp/blob/develop/infrastructure/ecs-cluster.yaml) |Provisions needed IAM roles, ALB security group, ALB,  ECS Cluster with FARGATE |
+| 3 | [Code infrastructure stack](https://github.com/Kirity/aws-demo-webapp/blob/develop/infrastructure/web-app-code-infrastructure.yaml) |Provisions a S3 bucket to store the build artifacts|
+| 4 | [Pipeline stack](https://github.com/Kirity/aws-demo-webapp/blob/develop/infrastructure/web-app-pipeline.yaml) |Provisions CodePipeline with stages source, build, and deploy|
 
 Successful stack creation   
 
@@ -100,13 +92,25 @@ Option-2 is recommendable.
 
 ### Choice of services to provision CI/CD workflow
 
+| Resource name | Description|
+| --- |--- |
+| [CodeCommit](https://aws.amazon.com/codecommit/) | Serverless solution to securely host highly scalable private Git repositories and collaborate on code.|
+| [CodePipeline](https://aws.amazon.com/codepipeline/) | Serverless solution to automate continuous delivery pipelines for fast and reliable updates.|
+| [CodeBuild](https://aws.amazon.com/codebuild/) | Serverless solution to build and test the software with automatic scaling.|
+| [CodeDeploy](https://aws.amazon.com/codedeploy/) | Serverless solution to automate code deployment to maintain application uptime.|
+| [ECR](https://aws.amazon.com/ecr/) | Serverless container registry to easily store, share, and deploy containers into ECS|
+| [S3](https://aws.amazon.com/s3/) | Highly scalable, highly available serverless object storage service to store the build artifacts produced by [CodePipeline](https://aws.amazon.com/codepipeline/)|
 
 
 ### Choice of services to provision for monitoring 
 
 | Resource name | Description|
 | --- |--- |
-| [CloudWatch Logs]() | test|
-| [CloudWatch Alarms]() | test|
-| [SNS]() | test|
-| [SES]() | test|
+| [CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) | Serverless solution to store, monitor, and access the logs produced by various AWS services. It is integrated with many services like EC2, ECS, RDS, ElasticCache, ALB, CodePipeline, and Route53.|
+| [CloudWatch Alarms](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html) | It is the feature available in [CloudWatch](https://aws.amazon.com/cloudwatch/). Used to trigger and invoke actions on services like auto scaling group using [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/working_with_metrics.html). To monitor application logs and raise alarms and notifications. |
+| [SNS](https://aws.amazon.com/sns/) | Fully managed Pub/Sub service sends notifications/messages to applications or to persons. Can be configured to send SMS texts, push notifications, and emails.|
+
+## Further discussions
+- Use CodeDeploy Blue/Green  to be more resilient and high availability
+- Add the DDOS protection
+- To increase the security enable the CloudTrail, VPC flow logs
