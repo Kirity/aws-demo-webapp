@@ -133,9 +133,13 @@ Example command to deploy with CLI as below:
 
 Before deploying the infrastructure testing can be done in the following ways:
 
-- Compilation checks: using `aws cloudformation validate-template`
+- Compilation checks: using `aws cloudformation validate-template --template-body file://sampletemplate.json`
 - Validate and catch common errors: using [cfn-lint](https://github.com/aws-cloudformation/cfn-lint). Usage `cfn-lint template.yaml`
-- Creation of change sets(like dry-run or terraform plan): it’s AWS way of generating a preview of what the stack update will do. Usage `aws cloudformation create-change-set --stack-name...`   
+- Creation of change sets(like dry-run or terraform plan): it’s AWS way of generating a preview of what the stack update will do. Usage `aws cloudformation create-change-set \
+                                                                                                                                             --stack-name my-application \
+                                                                                                                                             --change-set-name my-change-set \
+                                                                                                                                             --template-body file://template.yaml \
+                                                                                                                                             --capabilities CAPABILITY_IAM`   
 
 
 ##### Security best practices?
