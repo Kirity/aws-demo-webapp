@@ -147,9 +147,9 @@ Option-2 is recommendable.
 ## Further discussions
 ##### Handling sudden surge in load while maintaining performance and availability?
 
-Services like Route53, InternetGateway, NAT Gateway, ALB are serverless meaning these would scale automatically.
+Services like `Route53`, `InternetGateway`, `NAT Gateway`, `ALB` are serverless meaning these would scale automatically.
 
-Since ECS with EC2 is used we need to plan for sudden surges. To achieve this scaling polices needs to be configured to the ASG's like target tracking, step scaling, or simple scaling polices.
+Since `ECS` with `EC2` is used we need to plan for sudden surges. To achieve this scaling polices needs to be configured to the ASG's like target tracking, step scaling, or simple scaling polices.
 
 RDS Aurora supports auto scaling for the read replicas.    
 
@@ -169,10 +169,10 @@ Before deploying the infrastructure testing can be done in the following ways:
 
 ##### Security best practices?
 
-- Use ACM along with ALB to force only HTTPS client communication.
+- Use `ACM` along with `ALB` to force only HTTPS client communication.
 - Allow ingress requests only from frontend-ALB-security-group to the frontend-ecs-service. This will reduce the attack surface. 
 - Use encryption at rest where ever possible(EBS, RDS, CloudWatch logs).
-- Use IAM roles to access any resources from EC2. 
+- Use IAM roles to access any resources from `EC2`. 
 - Do not use access-key-id and secret-access-key in EC2 instead use Secrets Manager to store and read passwords.   
 - Create the IAM roles with the "least privilege principle".  
 - Configure [AWS Shield](https://aws.amazon.com/shield/) for the DDOS protection.
@@ -180,5 +180,12 @@ Before deploying the infrastructure testing can be done in the following ways:
 
 
 ##### Deployment of new version of software with zero-downtime?
-- Use CodeDeploy Blue/Green  to be more resilient and high availability
+- Performing [ECS blue/green deployments through CodeDeploy using AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/blue-green.html), we can achieve zero-down time, resilient, 
+and highly-availability of the application.
+- Blue resources would be version-0 of the application. When version-1 needs to be deployed a 
+new set of resources would be created, referred as "green". 
+- In case of any error occurs in version-1 deployment then "blue" environment will remain intact serving the incoming traffic, "green" environment resources will be rollbacked.
+- When version-1 deployment went through successfully then "blue"(old) environment will be removed, "green"(new) environment will take over.     
+
+
 
