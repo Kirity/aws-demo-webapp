@@ -70,6 +70,8 @@ Option-2 is recommendable.
 
 ## Proposed architecture
 
+![image](https://user-images.githubusercontent.com/15073157/228323572-e57b4d30-e79d-49e3-9a4c-17c4d158f6aa.png)
+
 
 ## Choice of services
 
@@ -114,6 +116,34 @@ Option-2 is recommendable.
 | [CloudWatch Alarms](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html) | It is the feature available in [CloudWatch](https://aws.amazon.com/cloudwatch/). Used to trigger and invoke actions on services like auto scaling group using [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/working_with_metrics.html). To monitor application logs and raise alarms and notifications. |
 | [SNS](https://aws.amazon.com/sns/) | Fully managed Pub/Sub service sends notifications/messages to applications or to persons. Can be configured to send SMS texts, push notifications, and emails.|
 
+
+## Cost estimation of the proposed architecture
+
+### Fixed costs
+| Service | Quantity |USD/month|
+| --- |--- |--- |
+| Route53| 1| 0.5|
+| EC2, instance type: m5.xlarge| 4| 662|
+| EBS General Purpose SSD (gp3) - Storage. 8 GB| 4| 3|
+| Aurora MySQL-Compatible(db.r4.2xlarge)| 2 | 2044|
+| Redis cache. Type: cache.m5.xlarge| 2| 541|
+
+### Variable costs
+| Service | Quantity |USD/month|
+| --- |--- |--- |
+| Frontend ALB| estimated| 30|
+| Backend ALB| estimated| 30|
+| NAT Gateway| estimated| 33|
+|NAT Gateway data processing of 300 GB/month| estimated| 14|
+|CodeBuild, instance type: general1.large| 1000 min| 20|
+|ECR|40GB |6 |
+|SecretsManager| 3 secrets, 10M requests|51 |
+|CloudWatch| | |
+|S3| | |
+|SNS| | |
+|KMS| | | 
+ 
+ 
 ## Further discussions
 ##### Handling sudden surge in load while maintaining performance and availability?
 
@@ -136,11 +166,6 @@ Before deploying the infrastructure testing can be done in the following ways:
 - Compilation checks: using `aws cloudformation validate-template --template-body file://sampletemplate.json`
 - Validate and catch common errors: using [cfn-lint](https://github.com/aws-cloudformation/cfn-lint). Usage `cfn-lint template.yaml`
 - Creation of change sets(like dry-run or terraform plan): it’s AWS way of generating a preview of what the stack update will do. Usage `aws cloudformation create-change-set \
-                                                                                                                                             --stack-name my-application \
-                                                                                                                                             --change-set-name my-change-set \
-                                                                                                                                             --template-body file://template.yaml \
-                                                                                                                                             --capabilities CAPABILITY_IAM`   
-
 
 ##### Security best practices?
 
