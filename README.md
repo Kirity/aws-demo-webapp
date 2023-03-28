@@ -51,7 +51,6 @@ Accessing the webapp with ALB URL. Response from the second hostname.
 
 
 # Architecture for an application with frontend and  backend services deployed with ECS EC2
-
 ## Application and it's requirements
 - Application has two services: frontend and backend. Both are containarized.
 - Load balancer needs to be used distribute traffic between frontend and backend.
