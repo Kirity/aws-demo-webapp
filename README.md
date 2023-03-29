@@ -72,7 +72,8 @@ Option-2 is recommendable.
 
 ![image](https://user-images.githubusercontent.com/15073157/228323572-e57b4d30-e79d-49e3-9a4c-17c4d158f6aa.png)
 
-
+### Open questions
+- Can we use one ALB instead on two? If this is possible then cost can be reduced. 
 ## Choice of services
 
 ### Choice of services to provision the application 
